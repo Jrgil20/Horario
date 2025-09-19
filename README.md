@@ -8,12 +8,11 @@ Este proyecto contiene un sistema de horario de estudio que ha sido refactorizad
 
 ### Archivos Principales
 
-1. **`styles.css`** - Archivo CSS separado con variables CSS y clases genéricas
-2. **`Horario202615_Sem_SepEne_2526_PR_refactored.html`** - Versión refactorizada del HTML original
-3. **`Horario202615_Sem_SepEne_2526_PR_dynamic.html`** - Versión completamente dinámica
-4. **`schedule-config.json`** - Configuración de materias, actividades y horarios
-5. **`schedule-generator.js`** - Generador dinámico de horarios
-6. **`Horario202615_Sem_SepEne_2526_PR.html`** - Archivo original (mantenido para referencia)
+1. **`index.html`** - Archivo principal con interfaz mejorada y detección automática
+2. **`styles.css`** - Archivo CSS separado con variables CSS y clases genéricas
+3. **`Horario202615_Sem_SepEne_2526_PR.html`** - Archivo original (mantenido para referencia)
+4. **`schedule-generator.js`** - Generador dinámico de horarios (opcional)
+5. **`README.md`** - Documentación completa del sistema
 
 ## 🎨 Mejoras Implementadas
 
@@ -39,32 +38,52 @@ Este proyecto contiene un sistema de horario de estudio que ha sido refactorizad
 - Clases de utilidad: `text-center`, `text-bold`, `mb-0`, etc.
 
 ### 4. Sistema Dinámico
-- Generación automática desde configuración JSON
-- Persistencia en localStorage
+- Generación automática desde configuración embebida
+- Detección automática de períodos de universidad
+- Interfaz mejorada con controles y estadísticas
 - API para modificar horarios programáticamente
+
+### 5. Detección Automática de Universidad
+- **Detección inteligente**: Busca automáticamente celdas con "Universidad"
+- **Rango automático**: Marca con recuadro azul desde "Universidad" hasta "Regreso"
+- **Sin configuración manual**: No necesitas marcar horarios manualmente
+- **Flexible**: Se adapta automáticamente a cualquier cambio en los horarios
+
+#### Cómo Funciona la Detección Automática:
+1. **Busca "Universidad"**: El sistema encuentra la celda que contiene "Universidad"
+2. **Busca "Regreso"**: Encuentra la celda que contiene "Regreso" después del inicio
+3. **Aplica recuadro azul**: Marca automáticamente todas las celdas entre ambos puntos
+4. **Maneja casos especiales**: Si no hay "Regreso", marca hasta el final del día
+
+#### Ejemplo de Funcionamiento:
+```
+Jueves:
+07:00-08:00: "🚌 Universidad" ← INICIO (detectado automáticamente)
+08:00-09:00: "🏫📊 Métodos..." ← Recuadro azul automático
+09:00-10:00: "🏫📊 Métodos..." ← Recuadro azul automático
+...
+18:00-19:00: "🚌 Regreso" ← FIN (detectado automáticamente)
+```
 
 ## 🚀 Uso
 
-### Versión Estática (Refactorizada)
+### Archivo Principal (Recomendado)
 ```html
-<!-- Usar el archivo refactorizado -->
-<link rel="stylesheet" href="styles.css">
-<!-- El HTML usa las nuevas clases CSS -->
+<!-- Abrir index.html en el navegador -->
+<!-- Incluye interfaz mejorada y detección automática -->
 ```
 
-### Versión Dinámica
-```html
-<!-- Usar la versión dinámica -->
-<div id="schedule-container"></div>
-<script src="schedule-generator.js"></script>
-```
+### Características del Index.html
+- **Interfaz profesional**: Header con gradiente y controles
+- **Detección automática**: Períodos de universidad detectados automáticamente
+- **Controles integrados**: Actualizar, imprimir, ver estadísticas
+- **Responsive**: Se adapta a cualquier dispositivo
 
-### Modificar Configuración
-Editar `schedule-config.json` para cambiar:
-- Materias y sus colores
-- Horarios de clases
-- Actividades
-- Consideraciones del plan
+### Modificar Horarios
+Para cambiar horarios, editar el objeto `scheduleData` en `index.html`:
+- Agregar/remover actividades
+- Cambiar horarios de clases
+- El sistema detecta automáticamente períodos de universidad
 
 ## 🔧 API del Generador
 
@@ -72,14 +91,14 @@ Editar `schedule-config.json` para cambiar:
 // Obtener instancia del generador
 const generator = window.scheduleGenerator;
 
-// Actualizar una celda específica
-generator.updateCell('10:00-11:00', 1, 'Nueva actividad');
-
 // Obtener estadísticas
 const stats = generator.getScheduleStats();
 
 // Regenerar horario
 generator.render('schedule-container');
+
+// Verificar si está en universidad (automático)
+const isInUni = generator.isInUniversityPeriod('10:00-11:00', 0); // Lunes 10:00
 ```
 
 ## 📊 Estructura de Clases CSS
@@ -113,6 +132,8 @@ generator.render('schedule-container');
 5. **Estándares**: Código más limpio y semántico
 6. **Performance**: CSS optimizado con variables
 7. **Debugging**: Fácil identificar y modificar estilos
+8. **Automatización**: Detección automática de períodos de universidad
+9. **Interfaz mejorada**: Controles profesionales y estadísticas
 
 ## 🔄 Migración
 
@@ -127,12 +148,15 @@ Para migrar un horario existente:
 
 ## 📝 Próximos Pasos
 
-- [ ] Agregar validación de horarios
+- [x] ✅ Detección automática de períodos de universidad
+- [x] ✅ Interfaz mejorada con controles
+- [x] ✅ Sistema de estadísticas
 - [ ] Implementar exportación a PDF
 - [ ] Crear interfaz de edición visual
 - [ ] Agregar temas (claro/oscuro)
 - [ ] Implementar notificaciones de horarios
 - [ ] Crear sistema de plantillas
+- [ ] Agregar validación de horarios
 
 ## 🤝 Contribución
 

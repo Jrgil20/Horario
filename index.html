@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horario de Estudio Semanal</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos adicionales para el index */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #666;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px;
+            border-left: 4px solid #c62828;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .controls h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 Horario de Estudio Semanal</h1>
+        <p>Planificación académica personalizada - Semestre 2026-1</p>
+    </div>
+    
+    <div class="controls">
+        <h3>🎛️ Controles del Horario</h3>
+        <button class="btn" onclick="refreshSchedule()">🔄 Actualizar Horario</button>
+        <button class="btn btn-secondary" onclick="exportSchedule()">📄 Exportar a PDF</button>
+        <button class="btn btn-secondary" onclick="printSchedule()">🖨️ Imprimir</button>
+        <button class="btn btn-secondary" onclick="showStats()">📊 Ver Estadísticas</button>
+    </div>
+    
+    <div id="schedule-container">
+        <div class="loading">
+            <p>⏳ Cargando horario...</p>
+        </div>
+    </div>
+    
+    <script>
+        // Configuración del horario
+        const scheduleConfig = {
+            "schedule": {
+                "title": "📚 Horario de Estudio Semanal",
+                "timeSlots": [
+                    "06:00-07:00",
+                    "07:00-08:00",
+                    "08:00-09:00",
+                    "09:00-10:00",
+                    "10:00-11:00",
+                    "11:00-12:00",
+                    "12:00-13:00",
+                    "13:00-14:00",
+                    "14:00-15:00",
+                    "15:00-16:00",
+                    "16:00-17:00",
+                    "17:00-18:00",
+                    "18:00-19:00",
+                    "19:00-20:00",
+                    "20:00-21:00",
+                    "21:00-22:00",
+                    "22:00+"
+                ],
+                "days": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+                "considerations": [
+                    "🔴 Texto rojo: Todas las clases presenciales en universidad",
+                    "🔵 Recuadro azul: Todo el tiempo que estás en universidad (incluyendo esperas)",
+                    "🏫 Universidad: Los jueves y viernes te quedas todo el día hasta terminar",
+                    "📚 Estudio: Sesiones de estudio en casa con tonos más claros",
+                    "Desarrollo Software: Máxima prioridad con plan de respaldo para faltas del profesor",
+                    "Períodos de 1h: Destinados a ocio según tus preferencias",
+                    "Máximo 3h seguidas: En días libres para evitar saturación",
+                    "IBM: 5 horas distribuidas estratégicamente",
+                    "Tiempo libre: Celdas vacías para flexibilidad"
+                ]
+            },
+            "subjects": {
+                "desarrollo": {
+                    "name": "Desarrollo de Software",
+                    "classColor": "subject-desarrollo-clase",
+                    "studyColor": "subject-desarrollo-estudio",
+                    "icon": "💻",
+                    "priority": 1,
+                    "weeklyStudyHours": 8,
+                    "weeklyStudySessions": 9
+                },
+                "ciberseguridad": {
+                    "name": "Ciberseguridad",
+                    "classColor": "subject-ciberseguridad-clase",
+                    "studyColor": "subject-ciberseguridad-estudio",
+                    "icon": "🛡️",
+                    "priority": 2,
+                    "weeklyStudyHours": 4,
+                    "weeklyStudySessions": 5
+                },
+                "metodos": {
+                    "name": "Métodos Numéricos",
+                    "classColor": "subject-metodos-clase",
+                    "studyColor": "subject-metodos-estudio",
+                    "icon": "📊",
+                    "priority": 3,
+                    "weeklyStudyHours": 3,
+                    "weeklyStudySessions": 4
+                },
+                "inteligencia": {
+                    "name": "Inteligencia de Negocios",
+                    "classColor": "subject-inteligencia-clase",
+                    "studyColor": "subject-inteligencia-estudio",
+                    "icon": "📈",
+                    "priority": 4,
+                    "weeklyStudyHours": 3,
+                    "weeklyStudySessions": 4
+                },
+                "ingles": {
+                    "name": "Inglés I",
+                    "classColor": "subject-ingles-clase",
+                    "studyColor": "subject-ingles-estudio",
+                    "icon": "🇺🇸",
+                    "priority": 5,
+                    "weeklyStudyHours": 2,
+                    "weeklyStudySessions": 3
+                },
+                "etica": {
+                    "name": "Ética Profesional",
+                    "classColor": "subject-etica-clase",
+                    "studyColor": "subject-etica-estudio",
+                    "icon": "⚖️",
+                    "priority": 6,
+                    "weeklyStudyHours": 1.5,
+                    "weeklyStudySessions": 1,
+                    "isVirtual": true
+                }
+            },
+            "activities": {
+                "ibm": {
+                    "name": "IBM",
+                    "color": "activity-ibm",
+                    "icon": "🔧",
+                    "weeklyHours": 5
+                },
+                "transporte": {
+                    "name": "Transporte",
+                    "color": "activity-transporte",
+                    "icon": "🚌"
+                },
+                "almuerzo": {
+                    "name": "Almuerzo",
+                    "color": "activity-almuerzo",
+                    "icon": "🍽️"
+                },
+                "ocio": {
+                    "name": "Ocio",
+                    "color": "activity-ocio",
+                    "icon": "🎮"
+                },
+                "libre": {
+                    "name": "Tiempo Libre",
+                    "color": "activity-libre",
+                    "icon": "💤"
+                },
+                "descanso": {
+                    "name": "Descanso",
+                    "color": "activity-descanso",
+                    "icon": "😴"
+                }
+            }
+        };
+
+        // Datos del horario
+        const scheduleData = {
+            "06:00-07:00": ["", "", "", "Preparación", "Preparación", "", ""],
+            "07:00-08:00": ["", "", "", "🚌 Universidad", "🚌 Universidad", "", ""],
+            "08:00-09:00": ["Preparación", "Desayuno", "Desayuno", "🏫📊 Métodos Numéricos", "🏫🛡️ Ciberseguridad (Práctica)", "", ""],
+            "09:00-10:00": ["🚌 Universidad", "📚💻 DESARROLLO SOFTWARE", "📚💻 DESARROLLO SOFTWARE", "🏫📊 Métodos Numéricos", "🏫🛡️ Ciberseguridad (Práctica)", "Desayuno", "Desayuno"],
+            "10:00-11:00": ["🏫📈 Inteligencia de Negocios", "📚💻 DESARROLLO SOFTWARE", "📚💻 DESARROLLO SOFTWARE", "", "", "🔧 IBM", ""],
+            "11:00-12:00": ["🏫📈 Inteligencia de Negocios", "📚💻 DESARROLLO SOFTWARE", "📚💻 DESARROLLO SOFTWARE", "", "", "🔧 IBM", ""],
+            "12:00-13:00": ["🏫📈 Inteligencia de Negocios", "🍽️ Almuerzo", "🍽️ Almuerzo", "🍽️ Almuerzo", "🍽️ Almuerzo", "🍽️ Almuerzo", "🍽️ Almuerzo"],
+            "13:00-14:00": ["🍽️ Almuerzo", "🔧 IBM", "🔧 IBM", "", "", "📚💻 DESARROLLO SOFTWARE", ""],
+            "14:00-15:00": ["🎮 OCIO", "🔧 IBM", "🔧 IBM", "", "", "📚💻 DESARROLLO SOFTWARE", ""],
+            "15:00-16:00": ["🏫🛡️ Ciberseguridad", "Descanso", "Descanso", "🏫🇺🇸 Inglés I", "", "", ""],
+            "16:00-17:00": ["🏫🛡️ Ciberseguridad", "📚🛡️ CIBERSEGURIDAD", "📚📈 INTELIGENCIA NEGOCIOS", "🏫🇺🇸 Inglés I", "🏫💻 Desarrollo de Software", "", ""],
+            "17:00-18:00": ["🎮 OCIO", "📚🛡️ CIBERSEGURIDAD", "📚📈 INTELIGENCIA NEGOCIOS", "🏫🇺🇸 Inglés I", "🏫💻 Desarrollo de Software", "", "📋 Prep. Semana"],
+            "18:00-19:00": ["🏫💻 Desarrollo de Software", "🍽️ Cena", "🍽️ Cena", "🚌 Regreso", "🚌 Regreso", "🍽️ Cena", "📖 Revisión semanal"],
+            "19:00-20:00": ["🏫💻 Desarrollo de Software", "📚📊 MÉTODOS NUMÉRICOS", "📚🇺🇸 INGLÉS", "🏫⚖️ Ética Profesional (Virtual)", "🍽️ Cena", "📚⚖️ ÉTICA PROFESIONAL", "🍽️ Cena"],
+            "20:00-21:00": ["🚌 Regreso", "", "", "🏫⚖️ Ética Profesional (Virtual)", "", "", ""],
+            "21:00-22:00": ["🍽️ Cena", "", "", "🍽️ Cena", "", "", ""],
+            "22:00+": ["💤 Sueño", "💤 Sueño", "💤 Sueño", "💤 Sueño", "💤 Sueño", "💤 Sueño", "💤 Sueño"]
+        };
+
+        // Generador de horario
+        class ScheduleGenerator {
+            constructor(config, data) {
+                this.config = config;
+                this.scheduleData = data;
+            }
+
+            // Método para detectar automáticamente períodos de universidad
+            isInUniversityPeriod(timeSlot, dayIndex) {
+                const { timeSlots } = this.config.schedule;
+                const currentTimeIndex = timeSlots.indexOf(timeSlot);
+                
+                // Buscar el índice de "Universidad" en este día
+                let universityStartIndex = -1;
+                let regresoIndex = -1;
+                
+                // Buscar desde el inicio hasta encontrar "Universidad"
+                for (let i = 0; i < timeSlots.length; i++) {
+                    const dayData = this.scheduleData[timeSlots[i]] || [];
+                    const cellContent = dayData[dayIndex] || '';
+                    
+                    if (cellContent.includes('Universidad')) {
+                        universityStartIndex = i;
+                        break;
+                    }
+                }
+                
+                // Buscar "Regreso" después del inicio de universidad
+                if (universityStartIndex !== -1) {
+                    for (let i = universityStartIndex + 1; i < timeSlots.length; i++) {
+                        const dayData = this.scheduleData[timeSlots[i]] || [];
+                        const cellContent = dayData[dayIndex] || '';
+                        
+                        if (cellContent.includes('Regreso')) {
+                            regresoIndex = i;
+                            break;
+                        }
+                    }
+                }
+                
+                // Si encontramos ambos, verificar si estamos en el rango
+                if (universityStartIndex !== -1 && regresoIndex !== -1) {
+                    // Estamos en universidad si estamos después del inicio y antes del regreso
+                    return currentTimeIndex > universityStartIndex && currentTimeIndex < regresoIndex;
+                }
+                
+                // Si solo encontramos inicio pero no regreso, asumir que estamos en universidad hasta el final del día
+                if (universityStartIndex !== -1 && regresoIndex === -1) {
+                    return currentTimeIndex > universityStartIndex;
+                }
+                
+                return false;
+            }
+
+            getCellClass(content, timeSlot, dayIndex) {
+                let universityClass = '';
+                
+                // Determinar automáticamente si está en universidad
+                // Buscar desde "Universidad" hasta "Regreso" en el mismo día
+                const isInUniversity = this.isInUniversityPeriod(timeSlot, dayIndex);
+                
+                if (isInUniversity) {
+                    universityClass = ' in-university';
+                }
+                
+                // Si no hay contenido, solo devolver la clase de universidad
+                if (!content) return universityClass;
+                
+                // Clases de materias
+                if (content.includes('DESARROLLO SOFTWARE')) return 'subject-desarrollo-estudio' + universityClass;
+                if (content.includes('Desarrollo de Software')) return 'subject-desarrollo-clase' + universityClass;
+                if (content.includes('CIBERSEGURIDAD')) return 'subject-ciberseguridad-estudio' + universityClass;
+                if (content.includes('Ciberseguridad')) return 'subject-ciberseguridad-clase' + universityClass;
+                if (content.includes('MÉTODOS NUMÉRICOS')) return 'subject-metodos-estudio' + universityClass;
+                if (content.includes('Métodos Numéricos')) return 'subject-metodos-clase' + universityClass;
+                if (content.includes('INTELIGENCIA NEGOCIOS')) return 'subject-inteligencia-estudio' + universityClass;
+                if (content.includes('Inteligencia de Negocios')) return 'subject-inteligencia-clase' + universityClass;
+                if (content.includes('INGLÉS')) return 'subject-ingles-estudio' + universityClass;
+                if (content.includes('Inglés I')) return 'subject-ingles-clase' + universityClass;
+                if (content.includes('ÉTICA PROFESIONAL')) return 'subject-etica-estudio' + universityClass;
+                if (content.includes('Ética Profesional')) return 'subject-etica-clase' + universityClass;
+                
+                // Clases de actividades
+                if (content.includes('IBM')) return 'activity-ibm' + universityClass;
+                if (content.includes('Universidad') || content.includes('Preparación') || content.includes('Regreso') || content.includes('Prep. Semana')) return 'activity-transporte' + universityClass;
+                if (content.includes('Almuerzo') || content.includes('Desayuno') || content.includes('Cena')) return 'activity-almuerzo' + universityClass;
+                if (content.includes('OCIO')) return 'activity-ocio' + universityClass;
+                if (content.includes('Sueño') || content.includes('Revisión semanal')) return 'activity-libre' + universityClass;
+                if (content.includes('Descanso')) return 'activity-descanso' + universityClass;
+                
+                // Para cualquier otro contenido
+                return universityClass;
+            }
+
+            generateScheduleTable() {
+                const { timeSlots, days } = this.config.schedule;
+                
+                let html = '<table class="schedule-table">';
+                
+                // Encabezado
+                html += '<thead><tr>';
+                html += '<th>Hora</th>';
+                days.forEach(day => {
+                    html += `<th>${day}</th>`;
+                });
+                html += '</tr></thead>';
+                
+                // Cuerpo de la tabla
+                html += '<tbody>';
+                timeSlots.forEach(timeSlot => {
+                    html += '<tr>';
+                    html += `<td class="time-column">${timeSlot}</td>`;
+                    
+                    const dayData = this.scheduleData[timeSlot] || [];
+                    for (let i = 0; i < days.length; i++) {
+                        const content = dayData[i] || '';
+                        const cellClass = this.getCellClass(content, timeSlot, i);
+                        html += `<td class="${cellClass}">${content}</td>`;
+                    }
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                
+                return html;
+            }
+
+            generateSubjectsLegend() {
+                const { subjects } = this.config;
+                let html = '<div class="legend-item"><div class="legend-color subject-desarrollo-clase"></div><span class="text-bold">🏫 Desarrollo Software - Clase</span></div>';
+                
+                Object.values(subjects).forEach(subject => {
+                    html += `<div class="legend-item">
+                        <div class="legend-color ${subject.classColor}"></div>
+                        <span class="text-bold">🏫 ${subject.name} - Clase</span>
+                    </div>`;
+                    
+                    html += `<div class="legend-item">
+                        <div class="legend-color ${subject.studyColor}"></div>
+                        <span class="text-bold">📚 ${subject.name} - Estudio (${subject.weeklyStudySessions})</span> - ${subject.weeklyStudyHours}h semanales
+                    </div>`;
+                });
+                
+                return html;
+            }
+
+            generateActivitiesLegend() {
+                const { activities } = this.config;
+                let html = '';
+                
+                Object.values(activities).forEach(activity => {
+                    const hoursText = activity.weeklyHours ? ` - ${activity.weeklyHours}h semanales` : '';
+                    html += `<div class="legend-item">
+                        <div class="legend-color ${activity.color}"></div>
+                        <span class="text-bold">${activity.icon} ${activity.name}</span>${hoursText}
+                    </div>`;
+                });
+                
+                return html;
+            }
+
+            generateFullSchedule() {
+                const { title, considerations } = this.config.schedule;
+                
+                return `
+                <div class="schedule-container">
+                    <h1 class="schedule-title">${title}</h1>
+                    
+                    ${this.generateScheduleTable()}
+
+                    <div class="legend">
+                        <h3 class="legend-title">📋 Leyenda por Importancia</h3>
+                        ${this.generateSubjectsLegend()}
+                        ${this.generateActivitiesLegend()}
+                    </div>
+                    
+                    <div class="info-box">
+                        <h4 class="info-title mt-0">✅ Consideraciones del Plan:</h4>
+                        <ul class="info-list mb-0">
+                            ${considerations.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>`;
+            }
+
+            render(containerId) {
+                const container = document.getElementById(containerId);
+                if (container) {
+                    container.innerHTML = this.generateFullSchedule();
+                }
+            }
+
+            getScheduleStats() {
+                const stats = {
+                    totalStudyHours: 0,
+                    totalClassHours: 0,
+                    subjects: {}
+                };
+
+                Object.values(this.scheduleData).forEach(dayData => {
+                    dayData.forEach(cellContent => {
+                        if (cellContent.includes('DESARROLLO SOFTWARE')) stats.totalStudyHours += 1;
+                        if (cellContent.includes('CIBERSEGURIDAD')) stats.totalStudyHours += 1;
+                        if (cellContent.includes('MÉTODOS NUMÉRICOS')) stats.totalStudyHours += 1;
+                        if (cellContent.includes('INTELIGENCIA NEGOCIOS')) stats.totalStudyHours += 1;
+                        if (cellContent.includes('INGLÉS')) stats.totalStudyHours += 1;
+                        if (cellContent.includes('ÉTICA PROFESIONAL')) stats.totalStudyHours += 1;
+                        if (cellContent.includes('IBM')) stats.totalClassHours += 1;
+                    });
+                });
+
+                return stats;
+            }
+        }
+
+        // Variables globales
+        let scheduleGenerator;
+
+        // Funciones de control
+        function refreshSchedule() {
+            const container = document.getElementById('schedule-container');
+            container.innerHTML = '<div class="loading"><p>⏳ Actualizando horario...</p></div>';
+            
+            setTimeout(() => {
+                scheduleGenerator = new ScheduleGenerator(scheduleConfig, scheduleData);
+                scheduleGenerator.render('schedule-container');
+            }, 500);
+        }
+
+        function exportSchedule() {
+            alert('📄 Función de exportación a PDF en desarrollo. Por ahora puedes usar Ctrl+P para imprimir.');
+        }
+
+        function printSchedule() {
+            window.print();
+        }
+
+        function showStats() {
+            const stats = scheduleGenerator.getScheduleStats();
+            alert(`📊 Estadísticas del Horario:\n\n` +
+                  `📚 Horas de Estudio: ${stats.totalStudyHours}h\n` +
+                  `🔧 Horas de IBM: ${stats.totalClassHours}h\n` +
+                  `📈 Total de Horas Académicas: ${stats.totalStudyHours + stats.totalClassHours}h`);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                scheduleGenerator = new ScheduleGenerator(scheduleConfig, scheduleData);
+                scheduleGenerator.render('schedule-container');
+                
+                // Hacer el generador disponible globalmente
+                window.scheduleGenerator = scheduleGenerator;
+                
+                console.log('✅ Horario cargado correctamente');
+            } catch (error) {
+                console.error('❌ Error al cargar el horario:', error);
+                document.getElementById('schedule-container').innerHTML = 
+                    '<div class="error"><h3>❌ Error al cargar el horario</h3><p>Por favor, recarga la página o contacta al administrador.</p></div>';
+            }
+        });
+    </script>
+</body>
+</html>
