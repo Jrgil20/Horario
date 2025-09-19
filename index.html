@@ -379,21 +379,84 @@
 
             generateSubjectsLegend() {
                 const { subjects } = this.config;
-                let html = '<div class="legend-item"><div class="legend-color subject-desarrollo-clase"></div><span class="text-bold">🏫 Desarrollo Software - Clase</span></div>';
+                let html = '';
+                
+                // Calcular horas reales de cada materia
+                const subjectStats = this.calculateSubjectStats();
                 
                 Object.values(subjects).forEach(subject => {
-                    html += `<div class="legend-item">
-                        <div class="legend-color ${subject.classColor}"></div>
-                        <span class="text-bold">🏫 ${subject.name} - Clase</span>
-                    </div>`;
+                    const stats = subjectStats[subject.name] || { classHours: 0, studyHours: 0 };
                     
-                    html += `<div class="legend-item">
-                        <div class="legend-color ${subject.studyColor}"></div>
-                        <span class="text-bold">📚 ${subject.name} - Estudio (${subject.weeklyStudySessions})</span> - ${subject.weeklyStudyHours}h semanales
-                    </div>`;
+                    // Clase presencial
+                    if (stats.classHours > 0) {
+                        html += `<div class="legend-item">
+                            <div class="legend-color ${subject.classColor}"></div>
+                            <span class="text-bold">🏫 ${subject.name} - Clase</span> - ${stats.classHours}h semanales
+                        </div>`;
+                    }
+                    
+                    // Estudio
+                    if (stats.studyHours > 0) {
+                        html += `<div class="legend-item">
+                            <div class="legend-color ${subject.studyColor}"></div>
+                            <span class="text-bold">📚 ${subject.name} - Estudio</span> - ${stats.studyHours}h semanales
+                        </div>`;
+                    }
                 });
                 
                 return html;
+            }
+
+            // Método para calcular estadísticas reales de materias
+            calculateSubjectStats() {
+                const stats = {};
+                
+                Object.values(this.scheduleData).forEach(dayData => {
+                    dayData.forEach(cellContent => {
+                        if (!cellContent) return;
+                        
+                        // Detectar materias y tipo (clase o estudio)
+                        if (cellContent.includes('Desarrollo de Software')) {
+                            this.addSubjectStats(stats, 'Desarrollo de Software', 'class');
+                        } else if (cellContent.includes('DESARROLLO SOFTWARE')) {
+                            this.addSubjectStats(stats, 'Desarrollo de Software', 'study');
+                        } else if (cellContent.includes('Ciberseguridad')) {
+                            this.addSubjectStats(stats, 'Ciberseguridad', 'class');
+                        } else if (cellContent.includes('CIBERSEGURIDAD')) {
+                            this.addSubjectStats(stats, 'Ciberseguridad', 'study');
+                        } else if (cellContent.includes('Métodos Numéricos')) {
+                            this.addSubjectStats(stats, 'Métodos Numéricos', 'class');
+                        } else if (cellContent.includes('MÉTODOS NUMÉRICOS')) {
+                            this.addSubjectStats(stats, 'Métodos Numéricos', 'study');
+                        } else if (cellContent.includes('Inteligencia de Negocios')) {
+                            this.addSubjectStats(stats, 'Inteligencia de Negocios', 'class');
+                        } else if (cellContent.includes('INTELIGENCIA NEGOCIOS')) {
+                            this.addSubjectStats(stats, 'Inteligencia de Negocios', 'study');
+                        } else if (cellContent.includes('Inglés I')) {
+                            this.addSubjectStats(stats, 'Inglés I', 'class');
+                        } else if (cellContent.includes('INGLÉS')) {
+                            this.addSubjectStats(stats, 'Inglés I', 'study');
+                        } else if (cellContent.includes('Ética Profesional')) {
+                            this.addSubjectStats(stats, 'Ética Profesional', 'class');
+                        } else if (cellContent.includes('ÉTICA PROFESIONAL')) {
+                            this.addSubjectStats(stats, 'Ética Profesional', 'study');
+                        }
+                    });
+                });
+                
+                return stats;
+            }
+
+            addSubjectStats(stats, subjectName, type) {
+                if (!stats[subjectName]) {
+                    stats[subjectName] = { classHours: 0, studyHours: 0 };
+                }
+                
+                if (type === 'class') {
+                    stats[subjectName].classHours += 1;
+                } else if (type === 'study') {
+                    stats[subjectName].studyHours += 1;
+                }
             }
 
             generateActivitiesLegend() {
@@ -443,21 +506,24 @@
             }
 
             getScheduleStats() {
+                const subjectStats = this.calculateSubjectStats();
                 const stats = {
                     totalStudyHours: 0,
                     totalClassHours: 0,
-                    subjects: {}
+                    totalIBMHours: 0,
+                    subjects: subjectStats
                 };
 
+                // Calcular totales
+                Object.values(subjectStats).forEach(subject => {
+                    stats.totalStudyHours += subject.studyHours;
+                    stats.totalClassHours += subject.classHours;
+                });
+
+                // Calcular horas de IBM
                 Object.values(this.scheduleData).forEach(dayData => {
                     dayData.forEach(cellContent => {
-                        if (cellContent.includes('DESARROLLO SOFTWARE')) stats.totalStudyHours += 1;
-                        if (cellContent.includes('CIBERSEGURIDAD')) stats.totalStudyHours += 1;
-                        if (cellContent.includes('MÉTODOS NUMÉRICOS')) stats.totalStudyHours += 1;
-                        if (cellContent.includes('INTELIGENCIA NEGOCIOS')) stats.totalStudyHours += 1;
-                        if (cellContent.includes('INGLÉS')) stats.totalStudyHours += 1;
-                        if (cellContent.includes('ÉTICA PROFESIONAL')) stats.totalStudyHours += 1;
-                        if (cellContent.includes('IBM')) stats.totalClassHours += 1;
+                        if (cellContent.includes('IBM')) stats.totalIBMHours += 1;
                     });
                 });
 
@@ -489,10 +555,21 @@
 
         function showStats() {
             const stats = scheduleGenerator.getScheduleStats();
-            alert(`📊 Estadísticas del Horario:\n\n` +
-                  `📚 Horas de Estudio: ${stats.totalStudyHours}h\n` +
-                  `🔧 Horas de IBM: ${stats.totalClassHours}h\n` +
-                  `📈 Total de Horas Académicas: ${stats.totalStudyHours + stats.totalClassHours}h`);
+            
+            let message = `📊 Estadísticas del Horario:\n\n`;
+            message += `📚 Horas de Estudio: ${stats.totalStudyHours}h\n`;
+            message += `🏫 Horas de Clase: ${stats.totalClassHours}h\n`;
+            message += `🔧 Horas de IBM: ${stats.totalIBMHours}h\n`;
+            message += `📈 Total de Horas Académicas: ${stats.totalStudyHours + stats.totalClassHours + stats.totalIBMHours}h\n\n`;
+            
+            message += `📋 Detalle por Materia:\n`;
+            Object.entries(stats.subjects).forEach(([subject, data]) => {
+                if (data.classHours > 0 || data.studyHours > 0) {
+                    message += `• ${subject}: ${data.classHours}h clase + ${data.studyHours}h estudio\n`;
+                }
+            });
+            
+            alert(message);
         }
 
         // Inicialización
