@@ -514,6 +514,118 @@ body {
     background-color: #545b62;
 }
 
+/* ===== INDICADORES DE PROGRESO ===== */
+.schedule-table td {
+    position: relative;
+}
+
+/* Estilo para tiempo pasado - capa sutil */
+.schedule-table td.past-time {
+    position: relative;
+}
+
+.schedule-table td.past-time::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 1;
+    transition: background 0.3s ease;
+}
+
+/* Hacer el contenido del tiempo pasado un poco más sutil */
+.schedule-table td.past-time {
+    color: rgba(0, 0, 0, 0.7);
+}
+
+/* Asegurar que el emoji de progreso se vea bien */
+.schedule-table td.past-time .progress-emoji {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Estilo para hora actual */
+.schedule-table td.current-time {
+    position: relative;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.6);
+    border: 2px solid #3498db !important;
+    animation: pulse 2s infinite;
+}
+
+/* Animación de pulso para hora actual */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(52, 152, 219, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.4);
+    }
+}
+
+/* Emoji de progreso */
+.progress-emoji {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 12px;
+    z-index: 15;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Indicador de progreso semanal */
+.progress-indicator {
+    background: linear-gradient(90deg, #3498db 0%, #2ecc71 100%);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    margin: 10px 0;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.progress-indicator .progress-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Estilo para celdas con progreso */
+.schedule-table td.current-time .progress-emoji {
+    background: rgba(52, 152, 219, 0.9);
+    color: white;
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-3px);
+    }
+    60% {
+        transform: translateY(-1px);
+    }
+}
+
 .loading {
     text-align: center;
     padding: 50px;
@@ -653,4 +765,116 @@ body {
 
 .btn-secondary:hover {
     background-color: #545b62;
+}
+
+/* ===== INDICADORES DE PROGRESO ===== */
+.schedule-table td {
+    position: relative;
+}
+
+/* Estilo para tiempo pasado - capa sutil */
+.schedule-table td.past-time {
+    position: relative;
+}
+
+.schedule-table td.past-time::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 1;
+    transition: background 0.3s ease;
+}
+
+/* Hacer el contenido del tiempo pasado un poco más sutil */
+.schedule-table td.past-time {
+    color: rgba(0, 0, 0, 0.7);
+}
+
+/* Asegurar que el emoji de progreso se vea bien */
+.schedule-table td.past-time .progress-emoji {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Estilo para hora actual */
+.schedule-table td.current-time {
+    position: relative;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.6);
+    border: 2px solid #3498db !important;
+    animation: pulse 2s infinite;
+}
+
+/* Animación de pulso para hora actual */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(52, 152, 219, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.4);
+    }
+}
+
+/* Emoji de progreso */
+.progress-emoji {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 12px;
+    z-index: 15;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Indicador de progreso semanal */
+.progress-indicator {
+    background: linear-gradient(90deg, #3498db 0%, #2ecc71 100%);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    margin: 10px 0;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.progress-indicator .progress-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Estilo para celdas con progreso */
+.schedule-table td.current-time .progress-emoji {
+    background: rgba(52, 152, 219, 0.9);
+    color: white;
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-3px);
+    }
+    60% {
+        transform: translateY(-1px);
+    }
 }
